@@ -8,6 +8,10 @@ def get_all_subjects():
 def get_subject_by_id(subject_id):
     return Subject.query.get(subject_id)
 
+def get_subjects_by_user(user_id):
+    return Subject.query.filter_by(creator_id=user_id).all()
+
+
 def create_subject(data):
     subject = Subject(
         name=data['name'],
