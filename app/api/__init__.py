@@ -8,11 +8,20 @@ from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from .questions import questions_ns
 from .subjects import subject_ns
+from .users import users_ns
 from .examinations import examination_ns
+from flask_cors import CORS
 
 def create_app(config=config_dict['dev']):
 
     app = Flask(__name__)
+
+
+    CORS(app,
+        resources={r"/*": {"origins": "*"}},  # Adjust this for production environments
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]  # Include OPTIONS here
+    )
 
     app.config.from_object(config)
 
@@ -35,5 +44,6 @@ def create_app(config=config_dict['dev']):
     api.add_namespace(questions_ns)
     api.add_namespace(subject_ns)
     api.add_namespace(examination_ns)
+    api.add_namespace(users_ns)
 
     return app

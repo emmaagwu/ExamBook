@@ -51,6 +51,16 @@ def register_routes(api):
 
     @api.route('/')
     class ExamList(Resource):
+
+
+        # def options(self):
+        #     return '', 204, {
+        #         'Access-Control-Allow-Origin': '*',
+        #         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        #         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        #     }
+
+
         @api.marshal_list_with(exam_model)
         @jwt_required()
         def get(self):

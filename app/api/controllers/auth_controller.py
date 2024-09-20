@@ -10,7 +10,8 @@ from ..utils.db import db
 from flask_mail import Message, Mail
 from datetime import datetime, timedelta
 from decouple import config
-
+from ..users.models import UserProfile
+from flask import abort
 
 auth_namespace=Namespace('auth', description='a namespace for authentication')
 
@@ -93,9 +94,27 @@ class Signup(Resource):
             is_admin=is_admin
         )
 
-        new_user.save()
+        try:
 
-        return new_user, HTTPStatus.CREATED
+            new_user.save()
+
+             # After committing the new user, create their profile
+            new_profile = UserProfile(
+                user_id=new_user.id,  # Associate with the created user
+                full_name=data.get('full_name', ""),  # Optional fields
+                bio=data.get('bio', ""),
+                avatar_url=data.get('avatar_url', ""),
+                phone_number=data.get('phone_number', ""),
+                address=data.get('address', "")
+            )
+
+            new_profile.save()
+
+            return new_user, HTTPStatus.CREATED
+
+        except Exception as e:
+            db.session.rollback()  # Roll back any changes in case of error
+            abort(500, f"An error occurred: {str(e)}")
         
 
 @auth_namespace.route('/login')
