@@ -8,9 +8,9 @@ from ..utils.decorator import admin_required  # Assuming you have an admin decor
 
 def register_routes(api):
     profile_model = api.model('UserProfile', {
-        # 'user_id': fields.Integer(description='The unique identifier of the user'),
-        # 'email': fields.String(description='Email address of the user'),
-        # 'username': fields.String(description='Username of the user'),
+        'user_id': fields.Integer(description='The unique identifier of the user'),
+        'email': fields.String(description='Email address of the user'),
+        'username': fields.String(description='Username of the user'),
         'full_name': fields.String(description='Full name of the user'),
         'bio': fields.String(description='Short bio of the user'),
         'avatar_url': fields.String(description='URL to the profile picture'),

@@ -8,7 +8,22 @@ def get_user_profile(user_id):
     profile = UserProfile.query.filter_by(user_id=user_id).first()
     if not profile:
         abort(404, "User profile not found")
-    return profile
+    return [
+        {
+            'user_id': profile.user.id,  # Access the user model via relationship
+            'email': profile.user.email,
+            'username': profile.user.username,
+            'profile': {
+                'full_name': profile.full_name,
+                'bio': profile.bio,
+                'avatar_url': profile.avatar_url,
+                'phone_number': profile.phone_number,
+                'address': profile.address,
+                'created_at': profile.created_at,
+                'updated_at': profile.updated_at
+            }
+        }
+    ]
 
 def update_user_profile(user_id, data):
     profile = UserProfile.query.filter_by(user_id=user_id).first()
@@ -71,44 +86,27 @@ def change_password(user_id, old_password, new_password):
 # Admin: Get all user profiles
 def admin_get_all_users():
     # Query all users with their profiles
-    # users = User.query.all()
 
-    # if not users:
-    #     abort(404, "No users found")
+    profiles = UserProfile.query.all()
 
-    # profiles = UserProfile.query.all()
+    if not profiles:
+        abort(404, "No user profiles found")
 
-    # return [
-    #     {
-    #         'user_id': user.id,
-    #         'email': user.email,
-    #         'profile': {
-    #             'full_name': user.profile.full_name if user.profile else None,
-    #             'bio': user.profile.bio if user.profile else None,
-    #             'avatar_url': user.profile.avatar_url if user.profile else None,
-    #             'phone_number': user.profile.phone_number if user.profile else None,
-    #             'address': user.profile.address if user.profile else None,
-    #             'created_at': user.profile.created_at if user.profile else None,
-    #             'updated_at': user.profile.updated_at if user.profile else None
-    #         }
-    #     } for user in users 
-    # ]
+    # return UserProfile.query.all()
 
-
-    # return [
-    #     {
-    #         'profile': {
-    #             'user_id': profile.user.id,
-    #             'email': profile.user.email,
-    #             'username': profile.user.username,
-    #             'full_name': profile.full_name if profile else None,
-    #             'bio': profile.bio if profile else None,
-    #             'avatar_url': profile.avatar_url if profile else None,
-    #             'phone_number': profile.phone_number if profile else None,
-    #             'address': profile.address if profile else None,
-    #             'created_at': profile.created_at if profile else None,
-    #             'updated_at': profile.updated_at if profile else None
-    #         }
-    #     } for profile in profiles
-    # ]
-    return UserProfile.query.all()
+    return [
+        {
+            'user_id': profile.user.id,  # Access the user model via relationship
+            'email': profile.user.email,
+            'username': profile.user.username,
+            'profile': {
+                'full_name': profile.full_name,
+                'bio': profile.bio,
+                'avatar_url': profile.avatar_url,
+                'phone_number': profile.phone_number,
+                'address': profile.address,
+                'created_at': profile.created_at,
+                'updated_at': profile.updated_at
+            }
+        } for profile in profiles
+    ]
