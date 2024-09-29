@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 def get_user_profile(user_id):
     profile = UserProfile.query.filter_by(user_id=user_id).first()
+    print ()
     if not profile:
         abort(404, "User profile not found")
     return [
@@ -13,15 +14,13 @@ def get_user_profile(user_id):
             'user_id': profile.user.id,  # Access the user model via relationship
             'email': profile.user.email,
             'username': profile.user.username,
-            'profile': {
-                'full_name': profile.full_name,
-                'bio': profile.bio,
-                'avatar_url': profile.avatar_url,
-                'phone_number': profile.phone_number,
-                'address': profile.address,
-                'created_at': profile.created_at,
-                'updated_at': profile.updated_at
-            }
+            'full_name': profile.full_name,
+            'bio': profile.bio,
+            'avatar_url': profile.avatar_url,
+            'phone_number': profile.phone_number,
+            'address': profile.address,
+            'created_at': profile.created_at,
+            'updated_at': profile.updated_at
         }
     ]
 
@@ -37,7 +36,20 @@ def update_user_profile(user_id, data):
     profile.address = data.get('address', profile.address)
 
     db.session.commit()
-    return profile
+    return [
+        {
+            'user_id': profile.user.id,  # Access the user model via relationship
+            'email': profile.user.email,
+            'username': profile.user.username,
+            'full_name': profile.full_name,
+            'bio': profile.bio,
+            'avatar_url': profile.avatar_url,
+            'phone_number': profile.phone_number,
+            'address': profile.address,
+            'created_at': profile.created_at,
+            'updated_at': profile.updated_at
+        }
+    ]
 
 def delete_user_profile(user_id):
     profile = UserProfile.query.filter_by(user_id=user_id).first()
@@ -52,7 +64,22 @@ def admin_get_user(user_id):
     profile = UserProfile.query.filter_by(user_id=user_id).first()
     if not profile:
         abort(404, "User profile not found")
-    return profile
+    return [
+        {
+            'user_id': profile.user.id,  # Access the user model via relationship
+            'email': profile.user.email,
+            'username': profile.user.username,
+            'full_name': profile.full_name,
+            'bio': profile.bio,
+            'avatar_url': profile.avatar_url,
+            'phone_number': profile.phone_number,
+            'address': profile.address,
+            'created_at': profile.created_at,
+            'updated_at': profile.updated_at
+
+        }
+    ]
+
 
 # Admin: Delete any user
 def admin_delete_user(user_id):
@@ -98,15 +125,14 @@ def admin_get_all_users():
         {
             'user_id': profile.user.id,  # Access the user model via relationship
             'email': profile.user.email,
-            'username': profile.user.username,
-            'profile': {
-                'full_name': profile.full_name,
-                'bio': profile.bio,
-                'avatar_url': profile.avatar_url,
-                'phone_number': profile.phone_number,
-                'address': profile.address,
-                'created_at': profile.created_at,
-                'updated_at': profile.updated_at
-            }
+            'username': profile.user.username,    
+            'full_name': profile.full_name,
+            'bio': profile.bio,
+            'avatar_url': profile.avatar_url,
+            'phone_number': profile.phone_number,
+            'address': profile.address,
+            'created_at': profile.created_at,
+            'updated_at': profile.updated_at
+
         } for profile in profiles
     ]

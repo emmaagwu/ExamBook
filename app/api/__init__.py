@@ -11,6 +11,8 @@ from .subjects import subject_ns
 from .users import users_ns
 from .examinations import examination_ns
 from flask_cors import CORS
+import os
+from flask import send_from_directory
 
 def create_app(config=config_dict['dev']):
 
@@ -31,6 +33,10 @@ def create_app(config=config_dict['dev']):
 
     migrate=Migrate(app, db)
 
+    # Ensure the upload folder exists
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.makedirs(app.config['UPLOAD_FOLDER'])
+
 
     api=Api(app,
         title='ExamBook API',
@@ -45,5 +51,9 @@ def create_app(config=config_dict['dev']):
     api.add_namespace(subject_ns)
     api.add_namespace(examination_ns)
     api.add_namespace(users_ns)
+
+    @app.route('/uploads/avatars/<filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     return app

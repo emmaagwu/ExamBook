@@ -4,7 +4,17 @@ from .services import (
     get_user_profile, update_user_profile, delete_user_profile, 
     admin_get_user, admin_get_all_users, admin_delete_user, change_password
 )
+from werkzeug.utils import secure_filename
+import os
+from flask import request, jsonify, current_app
 from ..utils.decorator import admin_required  # Assuming you have an admin decorator
+
+
+def allowed_file(filename):
+    """Check if the file extension is allowed"""
+    allowed_extensions = current_app.config.get('ALLOWED_EXTENSIONS', {'png', 'jpg', 'jpeg', 'gif'})
+    print(f"Allowed Extensions: {allowed_extensions}")
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 def register_routes(api):
     profile_model = api.model('UserProfile', {
@@ -30,12 +40,29 @@ def register_routes(api):
             current_user_id = get_jwt_identity()
             return get_user_profile(current_user_id)
 
-        @api.expect(profile_model)
-        @api.marshal_with(profile_model)
-        @jwt_required()
+        @api.expect(profile_model)  # Expecting a user profile payload
+        @api.marshal_with(profile_model)  # Return the user profile after updating
+        @jwt_required()  # Require authentication
         def put(self):
-            """Update the authenticated user's profile"""
+            """Update the authenticated user's profile, including file upload"""
             current_user_id = get_jwt_identity()
+
+            # Handle file upload
+            if 'avatar' in request.files:
+                file = request.files['avatar']
+                if file.filename == '':
+                    return jsonify({"error": "No selected file"}), 400
+
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    upload_folder = current_app.config['UPLOAD_FOLDER']
+                    filepath = os.path.join(upload_folder, filename)
+                    file.save(filepath)
+
+                    # Update the user's avatar URL with the new file location
+                    api.payload['avatar_url'] = filepath
+
+            # Update the user's profile with the fields in the payload
             return update_user_profile(current_user_id, api.payload)
 
         @jwt_required()
@@ -63,13 +90,56 @@ def register_routes(api):
             """Admin: Get any user's profile"""
             return admin_get_user(user_id)
 
-        @api.expect(profile_model)
         @api.marshal_with(profile_model)
         @jwt_required()
         @admin_required
         def put(self, user_id):
             """Admin: Update any user's profile"""
-            return update_user_profile(user_id, api.payload)
+
+            try:
+                # Create a dictionary to hold the profile data
+                profile_data = {}
+
+                # Handle form fields
+                profile_data['full_name'] = request.form.get('full_name')
+                profile_data['bio'] = request.form.get('bio')
+                profile_data['phone_number'] = request.form.get('phone_number')
+                profile_data['address'] = request.form.get('address')
+
+                # Log the form data for debugging
+                print(f"Received form data: {profile_data}")     
+
+
+
+
+                # Handle file upload (avatar)
+                if 'avatar' in request.files:
+                    file = request.files['avatar']
+
+                    print("File uploaded:", file)
+
+                    if file.filename == '':
+                        return jsonify({"error": "No selected file"}), 400
+
+                    if file and allowed_file(file.filename):
+                        filename = secure_filename(file.filename)
+                        upload_folder = current_app.config['UPLOAD_FOLDER']
+                        filepath = os.path.join(upload_folder, filename)
+                        file.save(filepath)
+                        upload_path = current_app.config['UPLOAD_PATH']
+                        fileretrieve_path = os.path.join(upload_path, filename)
+
+                        # Update the user's avatar URL with the new file location
+                        profile_data['avatar_url'] = fileretrieve_path
+
+                # Log the full profile data including the avatar URL
+                print(f"Profile data being updated: {profile_data}")
+
+                # Call the function to update the user's profile with the form data
+                return update_user_profile(user_id, profile_data)
+
+            except Exception as e:
+                return jsonify({"error": str(e)}), 400
 
         @jwt_required()
         @admin_required
